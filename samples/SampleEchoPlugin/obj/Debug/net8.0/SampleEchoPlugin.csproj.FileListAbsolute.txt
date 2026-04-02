@@ -1,0 +1,15 @@
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\bin\Debug\net8.0\SampleEchoPlugin.deps.json
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\bin\Debug\net8.0\SampleEchoPlugin.dll
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\bin\Debug\net8.0\SampleEchoPlugin.pdb
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\bin\Debug\net8.0\IoTGateway.ProtocolSdk.dll
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\bin\Debug\net8.0\IoTGateway.ProtocolSdk.pdb
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.csproj.AssemblyReference.cache
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.GeneratedMSBuildEditorConfig.editorconfig
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.AssemblyInfoInputs.cache
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.AssemblyInfo.cs
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.csproj.CoreCompileInputs.cache
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEc.F581D7F2.Up2Date
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.dll
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\refint\SampleEchoPlugin.dll
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\SampleEchoPlugin.pdb
+D:\iot\iot-gateway\IoTGateway\samples\SampleEchoPlugin\obj\Debug\net8.0\ref\SampleEchoPlugin.dll

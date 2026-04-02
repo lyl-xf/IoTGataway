@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT 网关管理平台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --void: #e8e7ed;
+            --bg-deep: #ebeaf0;
+            --bg-panel: #ecebf1;
+            --bg-raised: #f5f4f8;
+            --bg-input: #ffffff;
+            --purple: #7c3aed;
+            --purple-soft: #a78bfa;
+            --purple-dim: rgba(124, 58, 237, 0.08);
+            --purple-border: rgba(124, 58, 237, 0.15);
+            --purple-glow: rgba(124, 58, 237, 0.12);
+            --text: #111827;
+            --text-muted: #4b5563;
+            --accent: #6d28d9;
+            --accent-bright: #7c3aed;
+            --accent-glow: rgba(124, 58, 237, 0.15);
+            --card-bg: #ffffff;
+            --card-border: #d1d0d8;
+            --sidebar-bg: linear-gradient(180deg, #e9e7f0 0%, #e4e0ee 100%);
+            --sidebar-border: #ede9fe;
+            --sidebar-hover: rgba(124, 58, 237, 0.06);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(124, 58, 237, 0.06);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+            --radius-sm: 6px;
+            --bevel: 14px;
+            --sidebar-w: 232px;
+            --bg-pattern:
+                radial-gradient(ellipse 120% 100% at 100% 0%, rgba(167, 139, 250, 0.22), transparent 52%),
+                radial-gradient(ellipse 100% 80% at 0% 100%, rgba(196, 181, 253, 0.28), transparent 55%),
+                linear-gradient(180deg, #e8e7ed 0%, #e2e0e8 100%);
+        }
+
+        @keyframes meshShift {
+            0%, 100% { background-position: 0 0, 0 0, 0% 0%, 100% 100%; }
+            50% { background-position: 24px 12px, 12px 24px, 8% 5%, 92% 95%; }
+        }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.45; }
+            50% { transform: translate(16px, -22px) scale(1.06); opacity: 0.7; }
+        }
+        @keyframes orbFloat2 {
+            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
+            50% { transform: translate(-24px, 18px) scale(1.1); opacity: 0.6; }
+        }
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.28; }
+            50% { opacity: 0.48; }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes brandGlow {
+            0%, 100% { box-shadow: 0 2px 12px rgba(124, 58, 237, 0.15); }
+            50% { box-shadow: 0 4px 18px rgba(124, 58, 237, 0.22); }
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes contentGlow {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 0.85; }
+        }
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* 白底黑字 + 淡紫渐变氛围 */
+        body {
+            margin: 0;
+            background-color: var(--void);
+            background-image: var(--bg-pattern);
+            background-size: 100% 100%;
+            background-attachment: fixed;
+            font-family: "Noto Sans SC", system-ui, -apple-system, sans-serif;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+        }
+        body::after { display: none; }
+        #login-container,
+        #app-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sci-chamfer { clip-path: none; border-radius: var(--radius); }
+
+        /* 登录页：左宽右窄，非对称分栏 */
+        #login-container {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: minmax(0, 1.22fr) minmax(0, 0.78fr);
+            align-items: stretch;
+        }
+        @media (max-width: 991px) {
+            #login-container { grid-template-columns: 1fr; }
+            .login-hero { min-height: 220px; padding: 2rem !important; }
+        }
+        .login-hero {
+            background:
+                linear-gradient(135deg, rgba(200, 180, 240, 0.35) 0%, rgba(236, 234, 242, 0.95) 45%, rgba(220, 210, 235, 0.4) 100%);
+            color: var(--text);
+            padding: clamp(2.5rem, 6vh, 4rem) clamp(2rem, 4vw, 3.75rem);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse 65% 50% at 15% 25%, rgba(167, 139, 250, 0.2) 0%, transparent 55%),
+                radial-gradient(ellipse 55% 45% at 85% 75%, rgba(196, 181, 253, 0.28) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .login-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: 0.35;
+            background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20h40M20 0v40' stroke='%237c3aed' stroke-opacity='0.06' stroke-width='1'/%3E%3C/svg%3E");
+        }
+        .login-hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(72px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .login-hero-orb-1 {
+            width: 280px;
+            height: 280px;
+            top: -8%;
+            right: -10%;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.25), transparent 72%);
+            animation: orbFloat 16s ease-in-out infinite;
+        }
+        .login-hero-orb-2 {
+            width: 220px;
+            height: 220px;
+            bottom: 5%;
+            left: -12%;
+            background: radial-gradient(circle, rgba(196, 181, 253, 0.35), transparent 72%);
+            animation: orbFloat2 20s ease-in-out infinite;
+        }
+        .login-hero-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(124, 58, 237, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 58, 237, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+            mask-image: radial-gradient(ellipse 95% 85% at 45% 45%, black 15%, transparent 72%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .login-hero-inner { position: relative; z-index: 2; max-width: min(440px, 100%); animation: fadeSlideIn 0.75s ease-out both; }
+        .login-brand {
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .login-hero h1 {
+            font-family: "Noto Sans SC", system-ui, sans-serif;
+            font-size: clamp(1.65rem, 2.8vw + 0.6rem, 2.35rem);
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 1rem;
+            letter-spacing: 0.02em;
+            color: #111827;
+            -webkit-text-fill-color: #111827;
+        }
+        .login-hero p {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.75;
+            margin-bottom: 0;
+            max-width: 38em;
+        }
+        .login-hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 1.85rem;
+        }
+        .login-hero-badges span {
+            font-size: 0.8125rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            background: #ffffff;
+            border: 1px solid #e9d5ff;
+            color: #374151;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .login-hero-badges span .bi { color: #7c3aed !important; }
+        .login-hero-badges span:hover {
+            border-color: #c4b5fd;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
+        }
+
+        .login-aside {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(1.5rem, 4vh, 2.5rem) clamp(1.25rem, 3vw, 2rem);
+            background: linear-gradient(200deg, #e4e2ea 0%, #ebe8f2 45%, #e8e5ef 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .login-aside::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(167, 139, 250, 0.12), transparent 60%);
+            pointer-events: none;
+        }
+        .login-card {
+            width: 100%;
+            max-width: min(400px, 100%);
+            padding: clamp(2rem, 4vh, 2.6rem) clamp(1.75rem, 3vw, 2.35rem);
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            animation: fadeSlideIn 0.6s ease-out 0.1s both;
+            position: relative;
+            z-index: 1;
+        }
+        .login-card.sci-chamfer { filter: none; }
+        .login-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 3px;
+            border-radius: var(--radius) var(--radius) 0 0;
+            background: linear-gradient(90deg, #c4b5fd, #a78bfa, #8b5cf6);
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .login-card .login-title {
+            font-family: "Noto Sans SC", sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #0f172a;
+            margin-bottom: 0.4rem;
+        }
+        .login-card .login-sub {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-bottom: 1.65rem;
+        }
+        .login-card .form-label { font-weight: 600; font-size: 0.8125rem; color: #334155; }
+        .login-card .form-control {
+            border-radius: var(--radius-sm);
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: var(--text);
+            padding: 0.65rem 0.9rem;
+        }
+        .login-card .form-control:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: #ffffff;
+        }
+        .login-card .form-control::placeholder { color: #94a3b8; }
+        .btn-login-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%);
+            color: #ffffff !important;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: "Noto Sans SC", sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            font-size: 0.9375rem;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        }
+        .btn-login-primary:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        /* 主应用：白底侧栏 + 淡紫点缀 */
+        #app-container {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--bg-deep);
+        }
+        .sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: var(--sidebar-bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--sidebar-border);
+            box-shadow: 2px 0 16px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #a78bfa, #c4b5fd 40%, #e9d5ff);
+            opacity: 0.85;
+            pointer-events: none;
+        }
+        .sidebar::after {
+            display: none;
+        }
+        .sidebar-brand {
+            padding: 1.35rem 1rem 1.15rem 1.15rem;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+        }
+        .sidebar-brand .brand-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: var(--radius-sm);
+            clip-path: none;
+            background: linear-gradient(145deg, #faf5ff 0%, #ede9fe 100%);
+            border: 1px solid #e9d5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #7c3aed;
+            animation: brandGlow 5s ease-in-out infinite;
+        }
+        .sidebar-brand .brand-mark .bi { color: #7c3aed !important; }
+        .sidebar-brand .brand-text {
+            font-family: "Noto Sans SC", sans-serif;
+            font-weight: 700;
+            font-size: 0.9375rem;
+            letter-spacing: 0.02em;
+            color: #0f172a;
+        }
+        .sidebar-brand .brand-sub {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-top: 0.2rem;
+        }
+
+        .sidebar-nav { padding: 0.6rem 0.5rem; flex: 1; overflow-y: auto; }
+        .sidebar a.nav-link-item {
+            color: #334155;
+            text-decoration: none;
+            padding: 0.62rem 0.65rem 0.62rem 0.75rem;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            cursor: pointer;
+            transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            border-left: 2px solid transparent;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .sidebar a.nav-link-item i {
+            font-size: 1.05rem;
+            width: 1.25rem;
+            text-align: center;
+            color: #6b7280 !important;
+        }
+        .sidebar a.nav-link-item:hover {
+            background: var(--sidebar-hover);
+            color: #111827;
+            border-color: #f3e8ff;
+        }
+        .sidebar a.nav-link-item.active {
+            background: rgba(250, 245, 255, 0.85);
+            color: #111827;
+            font-weight: 600;
+            border-color: #ddd6fe;
+            border-left-color: #8b5cf6;
+            box-shadow: none;
+        }
+        .sidebar a.nav-link-item.active i { color: #7c3aed !important; }
+
+        .logout-btn {
+            margin: 0.55rem 0.65rem 0.85rem;
+            margin-top: auto;
+            background: rgba(244, 63, 94, 0.08);
+            color: #be123c;
+            text-align: center;
+            padding: 0.65rem 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(244, 63, 94, 0.28);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+        }
+        .logout-btn:hover {
+            background: rgba(244, 63, 94, 0.12);
+            color: #9f1239;
+        }
+
+        .content {
+            flex: 1;
+            min-width: 0;
+            padding: clamp(1rem, 2vh, 1.35rem) clamp(1.25rem, 3vw, 2.75rem) clamp(1.5rem, 3vh, 2.25rem);
+            overflow-y: auto;
+            position: relative;
+            isolation: isolate;
+            background:
+                radial-gradient(ellipse 90% 60% at 100% 0%, rgba(196, 181, 253, 0.25), transparent 52%),
+                var(--bg-panel);
+        }
+        .content::before { display: none; }
+        .content > * { position: relative; z-index: 1; }
+
+        .panel { display: none; }
+        .panel.active { display: block; animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            margin-bottom: clamp(1.1rem, 2.5vh, 1.65rem);
+            padding-bottom: 0.65rem;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+        }
+        .page-header::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -1px;
+            width: min(200px, 40%);
+            height: 2px;
+            background: linear-gradient(90deg, #c4b5fd, #e9d5ff, transparent);
+        }
+        .page-header h2 {
+            margin: 0;
+            font-family: "Noto Sans SC", sans-serif;
+            font-size: clamp(1.125rem, 1.15rem + 0.35vw, 1.375rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #111827;
+        }
+        .page-header .page-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.45rem;
+            padding-left: 0;
+            max-width: min(52rem, 100%);
+            line-height: 1.65;
+        }
+        .page-header .page-desc::before { display: none; }
+
+        .action-row {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1.1rem;
+        }
+        .action-row .form-select {
+            border-radius: var(--radius-sm);
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: var(--text);
+            max-width: min(300px, 100%);
+            font-size: 0.875rem;
+        }
+
+        .content .card.sci-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.25s ease;
+        }
+        .content .card.sci-panel:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .content .card .form-label { font-weight: 600; color: #334155; font-size: 0.8125rem; }
+        .content .form-control, .content .form-select {
+            border-radius: var(--radius-sm);
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+        .content .form-control::placeholder { color: #9ca3af; }
+        .content .form-control:focus, .content .form-select:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: #ffffff;
+        }
+
+        .table-wrap {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 0;
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .table-wrap.sci-chamfer { filter: none; }
+        .table-wrap::before {
+            content: "数据列表";
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: #6b7280;
+            padding: 0.5rem 1rem 0.35rem;
+            border-bottom: 1px solid #ede9fe;
+            background: linear-gradient(90deg, #f3e8ff 0%, #fafafa 100%);
+        }
+        .table-wrap:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .content .table {
+            margin-bottom: 0;
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--text);
+            color: var(--text);
+        }
+        .content .table thead th {
+            font-family: "Noto Sans SC", sans-serif;
+            background: linear-gradient(180deg, #faf5ff 0%, #f5f3ff 100%) !important;
+            color: #111827;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            text-transform: none;
+            letter-spacing: 0.02em;
+            border-bottom: 1px solid #e9d5ff !important;
+            padding: 0.75rem 0.85rem;
+            white-space: nowrap;
+            border-color: #f3e8ff;
+        }
+        .content .table tbody td {
+            padding: 0.65rem 0.85rem;
+            vertical-align: middle;
+            border-color: #f3f4f6;
+            font-size: 0.875rem;
+            border-left: 2px solid transparent;
+            transition: background 0.15s ease;
+            color: #111827;
+        }
+        .content .table tbody tr:nth-child(even) td {
+            background: #f4f4f6;
+        }
+        .content .table tbody tr:hover td {
+            background: #faf5ff !important;
+            border-left-color: #c4b5fd;
+        }
+        .content .table code.small,
+        .content .table .text-muted { font-family: "JetBrains Mono", monospace; font-size: 0.8125rem; color: #475569 !important; }
+        .content .table .badge {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.6875rem !important;
+            letter-spacing: 0.02em;
+            border-radius: var(--radius-sm) !important;
+            padding: 0.35em 0.65em !important;
+        }
+        .content .badge.text-bg-light,
+        .content .badge.rounded-pill.text-bg-light {
+            background: #f5f3ff !important;
+            color: #5b21b6 !important;
+            border: 1px solid #e9d5ff !important;
+        }
+        .content .badge.text-bg-success {
+            background: #d1fae5 !important;
+            color: #065f46 !important;
+            border: 1px solid rgba(16, 185, 129, 0.35) !important;
+        }
+        .content .badge.text-bg-secondary {
+            background: #f1f5f9 !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+
+        .btn { border-radius: var(--radius-sm); font-weight: 600; font-size: 0.78rem; letter-spacing: 0.06em; }
+        .content .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border: 1px solid #6d28d9;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+        }
+        .content .btn-primary:hover {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            border-color: #6d28d9;
+            color: #ffffff !important;
+        }
+        .content .btn-success {
+            background: #ffffff;
+            border: 1px solid #c4b5fd;
+            color: #5b21b6 !important;
+        }
+        .content .btn-success:hover {
+            background: #faf5ff;
+            color: #4c1d95 !important;
+        }
+        .content .btn-outline-primary {
+            border-color: #c4b5fd;
+            color: #7c3aed;
+            background: #ffffff;
+        }
+        .content .btn-outline-primary:hover {
+            background: #faf5ff;
+            border-color: #a78bfa;
+            color: #6d28d9;
+        }
+        .content .btn-outline-secondary {
+            border-color: #cbd5e1;
+            color: #475569;
+            background: #ffffff;
+        }
+        .content .btn-outline-secondary:hover {
+            border-color: #a78bfa;
+            color: #111827;
+            background: #fafafa;
+        }
+        .content .btn-outline-danger {
+            border-color: rgba(244, 63, 94, 0.45);
+            color: #be123c;
+            background: #ffffff;
+        }
+        .content .btn-outline-danger:hover {
+            background: #fff1f2;
+            border-color: #e11d48;
+            color: #9f1239;
+        }
+        .content .btn-sm { font-size: 0.72rem; padding: 0.28rem 0.5rem; }
+
+        .content .btn-info {
+            background: #e0f2fe;
+            border: 1px solid #7dd3fc;
+            color: #0369a1 !important;
+        }
+        .content .btn-warning {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #b45309 !important;
+        }
+
+        .table code.small { font-size: 0.8125rem; }
+        .debug-console {
+            background: #fafafa !important;
+            border: 1px solid #e5e7eb !important;
+            border-radius: var(--radius-sm) !important;
+            color: #111827 !important;
+            box-shadow: inset 0 0 0 1px #f3f4f6 !important;
+        }
+        .debug-console strong { color: #374151; font-family: "JetBrains Mono", monospace; }
+
+        #backup-preview {
+            border-radius: var(--radius-sm) !important;
+            border: 1px solid #e5e7eb !important;
+            background: #fafafa !important;
+            color: #374151 !important;
+            font-family: "JetBrains Mono", monospace !important;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+        }
+        .modal-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 1.2rem;
+        }
+        .modal-title {
+            font-family: "Noto Sans SC", sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        .modal-body .form-label, .modal-body label { font-weight: 600; font-size: 0.8125rem; color: #334155; }
+        .modal-body .form-control, .modal-body .form-select {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: var(--text);
+        }
+        .modal-footer { border-top: 1px solid #e2e8f0; padding: 0.85rem 1.2rem; }
+        .modal-content .btn-close { filter: none; opacity: 0.55; }
+
+        .text-secondary { color: var(--text-muted) !important; }
+        #login-error { color: #dc2626 !important; font-size: 0.8125rem !important; }
+
+        .content .table code.small.bg-light {
+            background: #f3f4f6 !important;
+            color: #111827 !important;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-sm);
+        }
+        .content .badge.text-dark { color: #111827 !important; }
+        .modal .bg-light,
+        .modal .border {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            color: var(--text);
+        }
+        .modal .form-text { color: #64748b !important; font-size: 0.75rem; }
+        .modal .btn-secondary {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+        }
+        .modal .btn-secondary:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+        .modal .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border: 1px solid #6d28d9;
+            color: #ffffff;
+        }
+        .content .form-check-label { color: #334155; font-size: 0.875rem; }
+        .alert.debug-console {
+            border: 1px solid #e5e7eb !important;
+            background: #fafafa !important;
+        }
+        .content h6.text-primary,
+        .content .text-primary { color: #7c3aed !important; }
+
+        /* 图标：深灰/紫，主按钮内白色 */
+        .sidebar .bi { color: #6b7280 !important; }
+        .login-hero .bi { color: #7c3aed !important; }
+        .page-header .bi,
+        .content .bi,
+        .modal .bi {
+            color: #6b7280 !important;
+        }
+        .content .btn .bi,
+        .modal .btn .bi {
+            color: inherit !important;
+        }
+        .btn-login-primary .bi,
+        .content .btn-primary .bi,
+        .modal .btn-primary .bi {
+            color: #ffffff !important;
+        }
+        .logout-btn .bi { color: #be123c !important; }
+    </style>
+</head>
+<body>
+
+<!-- 登录页面 -->
+<div id="login-container">
+    <div class="login-hero">
+        <div class="login-hero-orb login-hero-orb-1" aria-hidden="true"></div>
+        <div class="login-hero-orb login-hero-orb-2" aria-hidden="true"></div>
+        <div class="login-hero-grid" aria-hidden="true"></div>
+        <div class="login-hero-inner">
+            <div class="login-brand">Industrial IoT</div>
+            <h1>统一接入 · 可靠上云</h1>
+            <p>工业协议采集、物模型映射与 MQTT 上报的一体化网关控制台。为现场设备与云端平台搭建稳定、可运维的数据通道。</p>
+            <div class="login-hero-badges">
+                <span><i class="bi bi-diagram-3 me-1"></i>多协议</span>
+                <span><i class="bi bi-cloud-arrow-up me-1"></i>MQTT</span>
+                <span><i class="bi bi-shield-check me-1"></i>本地管控</span>
+            </div>
+        </div>
+    </div>
+    <div class="login-aside">
+        <div class="login-card sci-chamfer">
+            <div class="login-title">欢迎回来</div>
+            <div class="login-sub">登录 IoT 网关管理平台</div>
+            <div class="mb-3">
+                <label class="form-label">用户名</label>
+                <input type="text" id="username" class="form-control form-control-lg" value="admin" placeholder="请输入用户名" autocomplete="username">
+            </div>
+            <div class="mb-4">
+                <label class="form-label">密码</label>
+                <input type="password" id="password" class="form-control form-control-lg" value="123" placeholder="请输入密码" autocomplete="current-password">
+            </div>
+            <button type="button" class="btn btn-primary btn-login-primary btn-lg w-100" onclick="login()"><i class="bi bi-box-arrow-in-right me-2"></i>登录</button>
+            <div id="login-error" class="text-danger mt-3 text-center small" style="display: none;">用户名或密码错误</div>
+        </div>
+    </div>
+</div>
+
+<!-- 主应用页面 -->
+<div id="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-brand d-flex align-items-center gap-3">
+            <div class="brand-mark"><i class="bi bi-cpu"></i></div>
+            <div>
+                <div class="brand-text">IoT Gateway</div>
+                <div class="brand-sub">Edge Console</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-link nav-link-item active" data-target="device-panel"><i class="bi bi-hdd-network"></i><span>设备管理</span></a>
+            <a class="nav-link nav-link-item" data-target="plugin-protocol-panel"><i class="bi bi-puzzle"></i><span>自定义协议</span></a>
+            <a class="nav-link nav-link-item" data-target="variable-panel"><i class="bi bi-box-seam"></i><span>物模型配置</span></a>
+            <a class="nav-link nav-link-item" data-target="mqtt-panel"><i class="bi bi-broadcast"></i><span>MQTT 配置</span></a>
+            <a class="nav-link nav-link-item" data-target="debug-panel"><i class="bi bi-bug"></i><span>设备调试</span></a>
+            <a class="nav-link nav-link-item" data-target="backup-panel"><i class="bi bi-cloud-arrow-down"></i><span>配置备份</span></a>
+        </nav>
+        <div class="logout-btn" onclick="logout()"><i class="bi bi-box-arrow-right"></i>退出登录</div>
+    </aside>
+
+    <div class="content">
+        <!-- 设备管理面板 -->
+        <div id="device-panel" class="panel active">
+            <div class="page-header">
+                <h2>设备管理</h2>
+                <div class="page-desc">查看与维护现场设备连接、协议与轮询策略</div>
+            </div>
+            <div class="action-row">
+                <button type="button" class="btn btn-primary" onclick="loadDevices()"><i class="bi bi-arrow-clockwise me-1"></i>刷新列表</button>
+                <button type="button" class="btn btn-success" onclick="showDeviceModal()"><i class="bi bi-plus-lg me-1"></i>添加设备</button>
+            </div>
+            <div class="table-wrap sci-chamfer">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>ID</th><th>名称</th><th>IP/串口</th><th>端口/波特率</th><th>协议</th><th>状态</th><th class="text-end">操作</th></tr></thead>
+                    <tbody id="device-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 自定义协议（插件） -->
+        <div id="plugin-protocol-panel" class="panel">
+            <div class="page-header">
+                <h2>自定义协议</h2>
+                <div class="page-desc">查看已加载的协议插件；新建设备时只需在协议中选择对应插件</div>
+            </div>
+            <div class="action-row">
+                <button type="button" class="btn btn-primary" onclick="loadProtocolPlugins()"><i class="bi bi-arrow-clockwise me-1"></i>刷新列表</button>
+            </div>
+            <div class="table-wrap sci-chamfer">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>插件 ID</th><th>显示名称</th></tr></thead>
+                    <tbody id="plugin-protocol-table-body"></tbody>
+                </table>
+            </div>
+            <div class="card sci-panel p-4 border-0 mt-3" style="max-width: 42rem;">
+                <h6 class="fw-semibold mb-2 d-flex align-items-center gap-2"><i class="bi bi-info-circle text-primary"></i>部署说明</h6>
+                <ul class="text-secondary small mb-0 ps-3">
+                    <li>将插件 DLL 放入网关运行目录下的 <code>plugins</code> 文件夹，修改后需<strong>重启网关</strong>。</li>
+                    <li>插件工程引用 <code>IoTGateway.ProtocolSdk</code>，实现 <code>IProtocolPlugin</code> 与 <code>IDeviceProtocolSession</code>。</li>
+                    <li>在<strong>设备管理 → 添加设备</strong>中，「协议类型」内选择<strong>插件协议</strong>下对应项即可，无需手写插件 ID。</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 物模型配置面板 -->
+        <div id="variable-panel" class="panel">
+            <div class="page-header">
+                <h2>物模型配置</h2>
+                <div class="page-desc">为设备配置寄存器映射、数据类型与云端物模型标识</div>
+            </div>
+            <div class="action-row"> 
+                <select id="var-device-id" class="form-select" style="width: 250px; max-width: 100%;" onchange="loadVariables()">
+                    <option value="">-- 请选择设备 --</option>
+                </select>
+                <button type="button" class="btn btn-primary" onclick="loadVariables()"><i class="bi bi-arrow-clockwise me-1"></i>刷新变量</button>
+                <button type="button" class="btn btn-success" onclick="showVariableModal()"><i class="bi bi-plus-lg me-1"></i>添加变量</button>
+            </div>
+            <div class="table-wrap sci-chamfer">
+                <table class="table table-hover align-middle mb-0">
+                    <thead><tr><th>ID</th><th>寄存器地址</th><th>数据类型</th><th>物模型标识 (Alias)</th><th>备注</th><th>读写权限</th><th class="text-end">操作</th></tr></thead>
+                    <tbody id="variable-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MQTT 配置面板 -->
+        <div id="mqtt-panel" class="panel">
+            <div class="page-header">
+                <h2>MQTT 配置</h2>
+                <div class="page-desc">连接云端 Broker，配置上报与指令订阅主题</div>
+            </div>
+            <div class="card sci-panel p-4 border-0 mx-auto" style="max-width: 520px;">
+                <div class="mb-3"><label class="form-label">Broker IP</label><input type="text" id="mqtt-ip" class="form-control" placeholder="例如 192.168.1.100"></div>
+                <div class="mb-3"><label class="form-label">Port</label><input type="number" id="mqtt-port" class="form-control" value="1883"></div>
+                <div class="mb-3"><label class="form-label">Client ID</label><input type="text" id="mqtt-clientid" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">Username (用户名)</label><input type="text" id="mqtt-username" class="form-control" placeholder="可选"></div>
+                <div class="mb-3"><label class="form-label">Password (密码)</label><input type="password" id="mqtt-password" class="form-control" placeholder="可选"></div>
+                <div class="mb-3"><label class="form-label">Publish Topic (上报主题)</label><input type="text" id="mqtt-pub" class="form-control"></div>
+                <div class="mb-3"><label class="form-label">Subscribe Topic (下发指令主题)</label><input type="text" id="mqtt-sub" class="form-control" placeholder="例如: gateway/command"></div>
+                <button type="button" class="btn btn-success mt-2 px-4" onclick="saveMqttConfig()"><i class="bi bi-check2-circle me-1"></i>保存配置</button>
+            </div>
+        </div>
+
+        <!-- 设备调试面板 -->
+        <div id="debug-panel" class="panel">
+            <div class="page-header">
+                <h2>设备联调测试</h2>
+                <div class="page-desc">在线读写字段，验证现场连接与物模型是否正确</div>
+            </div>
+            <div class="card sci-panel p-4 border-0 mx-auto" style="max-width: 520px;">
+                <div class="mb-3">
+                    <label class="form-label">设备</label>
+                    <select id="debug-device-id" class="form-select" onchange="onDebugDeviceChange()">
+                        <option value="">-- 请选择设备 --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">物模型属性 (寄存器地址)</label>
+                    <select id="debug-address" class="form-select" onchange="onDebugAddressChange()">
+                        <option value="">-- 请先选择设备 --</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">数据类型</label>
+                    <select id="debug-datatype" class="form-select" disabled>
+                        <option value="0">Bool</option>
+                        <option value="1">Int16</option>
+                        <option value="2">Int32</option>
+                        <option value="3">Float</option>
+                        <option value="4">Double</option>
+                        <option value="5">String</option>
+                        <option value="6">Coil (线圈)</option>
+                        <option value="7">Discrete (离散)</option>
+                        <option value="8">Short</option>
+                        <option value="9">UShort</option>
+                        <option value="10">Long</option>
+                        <option value="11">ULong</option>
+                    </select>
+                </div>
+                <div class="mb-3"><label class="form-label">写入值 (仅写入操作需要)</label><input type="text" id="debug-write-val" class="form-control"></div>
+
+                <div class="mb-3 d-flex gap-2">
+                    <button type="button" class="btn btn-info text-white flex-grow-1" onclick="debugRead()"><i class="bi bi-download me-1"></i>读取数据</button>
+                    <button type="button" class="btn btn-warning text-dark flex-grow-1" onclick="debugWrite()"><i class="bi bi-upload me-1"></i>写入数据</button>
+                </div>
+
+                <div class="alert debug-console mt-3 mb-0 py-3">
+                    <strong>控制台回显</strong><br/>
+                    <span id="debug-result" class="d-inline-block mt-2" style="font-family: ui-monospace, monospace; font-size: 0.8125rem; color: #374151;">等待操作...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 配置备份：设备 + 物模型 (+ 可选 MQTT) -->
+        <div id="backup-panel" class="panel">
+            <div class="page-header">
+                <h2>配置备份与恢复</h2>
+                <div class="page-desc">导出或导入设备、物模型与 MQTT，便于迁移与灾备</div>
+            </div>
+            <p class="text-secondary mb-4" style="max-width: 52rem;">将设备、物模型导出为 JSON 文件留存，或导入到本机 / 其他网关以快速部署。导入前建议先导出一份当前配置。</p>
+            <div class="card sci-panel p-4 border-0 mx-auto" style="max-width: 680px;">
+                <h5 class="mb-3 fw-semibold d-flex align-items-center gap-2"><i class="bi bi-file-earmark-arrow-up text-primary"></i>导出</h5>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="backup-export-mqtt" checked>
+                    <label class="form-check-label" for="backup-export-mqtt">包含 MQTT 配置（含账号密码，请妥善保管文件）</label>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <button type="button" class="btn btn-primary" onclick="exportBackup(true)"><i class="bi bi-download me-1"></i>下载 JSON 文件</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="exportBackup(false)"><i class="bi bi-eye me-1"></i>在页面中预览 JSON</button>
+                </div>
+                <pre id="backup-preview" class="bg-light border rounded p-3 small mb-0" style="max-height: 280px; overflow: auto; white-space: pre-wrap; word-break: break-all; display: none;"></pre>
+                <div id="backup-status" class="text-muted small mt-2"></div>
+                <h5 class="mb-3 border-top pt-4 mt-2 fw-semibold d-flex align-items-center gap-2"><i class="bi bi-file-earmark-arrow-down text-primary"></i>导入</h5>
+                <div class="mb-3">
+                    <label class="form-label">导入模式</label>
+                    <select id="backup-import-mode" class="form-select">
+                        <option value="merge">合并（按设备 ID 更新/新增；物模型按 Alias 匹配）</option>
+                        <option value="replaceAll">全量替换（清空现有设备与物模型后导入，慎用）</option>
+                    </select>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="backup-import-mqtt" checked>
+                    <label class="form-check-label" for="backup-import-mqtt">同时写入文件中的 MQTT 配置</label>
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="backup-import-remove-missing">
+                    <label class="form-check-label" for="backup-import-remove-missing">合并模式下：删除该设备上未出现在备份中的物模型项</label>
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                    <input type="file" id="backup-file-input" accept=".json,application/json" class="d-none" onchange="onBackupFileSelected(event)">
+                    <button type="button" class="btn btn-success" onclick="document.getElementById('backup-file-input').click()"><i class="bi bi-folder2-open me-1"></i>选择 JSON 文件并导入</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框：设备编辑 -->
+<div class="modal fade" id="deviceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deviceModalTitle">添加 / 编辑设备</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dev-is-edit" value="0">
+                <div class="mb-2"><label>设备 ID (唯一标识)</label><input type="number" id="dev-id" class="form-control" placeholder="请输入数字 ID"></div>
+                <div class="mb-2"><label>名称</label><input type="text" id="dev-name" class="form-control"></div>
+                <div class="mb-2">
+                    <label>协议类型</label>
+                    <select id="dev-protocol" class="form-select" onchange="toggleProtocolFields()"></select>
+                    <div class="form-text">内置协议与已在「自定义协议」页加载的插件；插件列表变更后请刷新页面或重新打开本窗口。</div>
+                </div>
+
+                <div id="plugin-fields" class="mb-2 p-3 rounded border bg-light" style="display:none;">
+                    <label class="form-label fw-semibold">插件专用配置 (JSON，可选)</label>
+                    <textarea id="dev-plugin-config" class="form-control font-monospace small" rows="4" placeholder='例如 {"unitId":1}'></textarea>
+                    <div class="form-text">TCP/串口等连接参数使用下方通用字段；此处仅传递插件约定的扩展配置。</div>
+                </div>
+
+                <div id="tcp-fields">
+                    <div class="mb-2"><label>IP 地址</label><input type="text" id="dev-ip" class="form-control"></div>
+                    <div class="mb-2"><label>端口</label><input type="number" id="dev-port" class="form-control"></div>
+                </div>
+
+                <div id="serial-fields" style="display:none;">
+                    <div class="mb-2"><label>串口号 (如 COM1, /dev/ttyUSB0)</label><input type="text" id="dev-portname" class="form-control"></div>
+                    <div class="mb-2"><label>波特率</label><input type="number" id="dev-baud" class="form-control" value="9600"></div>
+                    <div class="mb-2"><label>数据位</label><input type="number" id="dev-databits" class="form-control" value="8"></div>
+                    <div class="mb-2"><label>停止位 (0=None, 1=One, 2=Two, 3=1.5)</label><input type="number" id="dev-stopbits" class="form-control" value="1"></div>
+                    <div class="mb-2"><label>校验位 (0=None, 1=Odd, 2=Even, 3=Mark, 4=Space)</label><input type="number" id="dev-parity" class="form-control" value="0"></div>
+                </div>
+
+                <div id="plc-fields" style="display:none;">
+                    <div class="mb-2">
+                        <label>PLC 版本</label>
+                        <select id="dev-plcversion" class="form-select">
+                            <option value="">-- 请选择 --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-2"><label>轮询间隔 (ms)</label><input type="number" id="dev-interval" class="form-control" value="1000"></div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="dev-active" checked>
+                    <label class="form-check-label">启用设备</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveDevice()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框：变量编辑 -->
+<div class="modal fade" id="variableModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加 / 编辑变量</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="var-id">
+                <div class="mb-2">
+                    <label>所属设备</label>
+                    <select id="var-dev-id-input" class="form-select"></select>
+                </div>
+                <div class="mb-2"><label>寄存器地址</label><input type="text" id="var-address" class="form-control"></div>
+                <div class="mb-2">
+                    <label>数据类型</label>
+                    <select id="var-datatype" class="form-select">
+                        <option value="0">Bool</option>
+                        <option value="1">Int16</option>
+                        <option value="2">Int32</option>
+                        <option value="3">Float</option>
+                        <option value="4">Double</option>
+                        <option value="5">String</option>
+                        <option value="6">Coil (线圈)</option>
+                        <option value="7">Discrete (离散)</option>
+                        <option value="8">Short</option>
+                        <option value="9">UShort</option>
+                        <option value="10">Long</option>
+                        <option value="11">ULong</option>
+                    </select>
+                </div>
+                <div class="mb-2"><label>物模型标识 (Alias)</label><input type="text" id="var-alias" class="form-control"></div>
+                <div class="mb-2"><label>备注</label><input type="text" id="var-description" class="form-control"></div>
+                <div class="mb-2">
+                    <label>读写权限</label>
+                    <select id="var-rw" class="form-select">
+                        <option value="0">只读</option>
+                        <option value="1">只写</option>
+                        <option value="2">读写</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveVariable()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API_BASE = '/api';
+    const TOKEN_KEY = 'iot_auth_token';
+
+    // --- 权限与登录逻辑 ---
+
+    // 检查登录状态（先拉插件列表，设备列表里的协议名称才能显示完整）
+    async function checkAuth() {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (token) {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            await loadProtocolPlugins();
+            loadDevices();
+        } else {
+            document.getElementById('login-container').style.display = 'grid';
+            document.getElementById('app-container').style.display = 'none';
+        }
+    }
+
+    // 登录操作
+    async function login() {
+        const user = document.getElementById('username').value;
+        const pass = document.getElementById('password').value;
+        const errorEl = document.getElementById('login-error');
+
+        errorEl.style.display = 'none';
+
+        try {
+            const res = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || '登录失败');
+            }
+
+            const data = await res.json();
+            localStorage.setItem(TOKEN_KEY, data.token);
+            await checkAuth();
+        } catch (e) {
+            errorEl.innerText = e.message || '网络错误，无法连接到服务器';
+            errorEl.style.display = 'block';
+        }
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem(TOKEN_KEY);
+        void checkAuth();
+    }
+
+    // 封装带 Token 的 fetch 请求
+    async function fetchWithAuth(url, options = {}) {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!options.headers) options.headers = {};
+        options.headers['Authorization'] = `Bearer ${token}`;
+        options.headers['Content-Type'] = 'application/json';
+
+        const res = await fetch(url, options);
+
+        // 如果后端返回 401 未授权，自动退出登录
+        if (res.status === 401) {
+            alert('登录已过期，请重新登录');
+            logout();
+            throw new Error('Unauthorized');
+        }
+        return res;
+    }
+
+    // --- 页面交互逻辑 ---
+
+    // 导航切换（必须用 currentTarget：点到图标/文字时 e.target 是子节点，没有 data-target）
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const nav = e.currentTarget;
+            const targetId = nav.getAttribute('data-target');
+            if (!targetId) return;
+            const panel = document.getElementById(targetId);
+            if (!panel) return;
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            nav.classList.add('active');
+            panel.classList.add('active');
+            if (targetId === 'plugin-protocol-panel') loadProtocolPlugins();
+        });
+    });
+
+    // --- 业务 API 调用 (全部替换为 fetchWithAuth) ---
+
+    const builtinProtocolNames = ["ModbusTcp", "ModbusRtu", "ModbusAscii", "SiemensClient", "MitsubishiClient", "OmronFinsClient"];
+    const dataTypeNames = ["Bool", "Int16", "Int32", "Float", "Double", "String", "Coil", "Discrete", "Short", "UShort", "Long", "ULong"];
+    const rwNames = ["只读", "只写", "读写"];
+
+    function escapeHtml(s) {
+        if (s == null || s === '') return '';
+        const div = document.createElement('div');
+        div.textContent = String(s);
+        return div.innerHTML;
+    }
+
+    function formatProtocolLabel(d) {
+        if (d.protocolType !== 6) return builtinProtocolNames[d.protocolType] ?? '—';
+        const pid = d.pluginId || '';
+        const pl = (window.pluginProtocolList || []).find(x => x.pluginId === pid);
+        return pl ? `${pl.displayName} (${pid})` : `插件: ${pid || '?'}`;
+    }
+
+    function buildDeviceProtocolSelect() {
+        const sel = document.getElementById('dev-protocol');
+        if (!sel) return;
+        const builtin = [
+            ['0', 'ModbusTcp'],
+            ['1', 'ModbusRtu'],
+            ['2', 'ModbusAscii'],
+            ['3', 'SiemensClient(西门子)'],
+            ['4', 'MitsubishiClient(三菱)'],
+            ['5', 'OmronFinsClient(欧姆龙)']
+        ];
+        let html = '<optgroup label="内置协议">';
+        builtin.forEach(([v, t]) => { html += `<option value="${v}">${t}</option>`; });
+        html += '</optgroup><optgroup label="插件协议">';
+        const plugins = window.pluginProtocolList || [];
+        if (plugins.length === 0) {
+            html += '<option value="" disabled>（暂无已加载插件，请到「自定义协议」部署 DLL 并重启）</option>';
+        } else {
+            plugins.forEach(p => {
+                const id = p.pluginId || '';
+                const title = p.displayName ? `${p.displayName} (${id})` : id;
+                html += `<option value="plugin:${id}">${escapeHtml(title)}</option>`;
+            });
+        }
+        html += '</optgroup>';
+        sel.innerHTML = html;
+    }
+
+    function renderPluginProtocolPanelTable() {
+        const tbody = document.getElementById('plugin-protocol-table-body');
+        if (!tbody) return;
+        const list = window.pluginProtocolList || [];
+        if (list.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="2" class="text-muted text-center py-4">暂无已加载的插件。请将 DLL 放入运行目录 <code>plugins</code> 文件夹后<strong>重启网关</strong>，再回到此处刷新。</td></tr>';
+            return;
+        }
+        tbody.innerHTML = list.map(p => `
+            <tr>
+                <td><code class="small">${escapeHtml(p.pluginId)}</code></td>
+                <td>${escapeHtml(p.displayName || '')}</td>
+            </tr>`).join('');
+    }
+
+    function toggleProtocolFields() {
+        const sel = document.getElementById('dev-protocol');
+        const v = sel.value;
+        const isPlugin = v.startsWith('plugin:');
+        const p = isPlugin ? 6 : parseInt(v, 10);
+        const pluginFields = document.getElementById('plugin-fields');
+        if (isPlugin) {
+            pluginFields.style.display = 'block';
+            document.getElementById('tcp-fields').style.display = 'block';
+            document.getElementById('serial-fields').style.display = 'block';
+            document.getElementById('plc-fields').style.display = 'none';
+            return;
+        }
+        pluginFields.style.display = 'none';
+        document.getElementById('tcp-fields').style.display = (p === 0 || p >= 3) ? 'block' : 'none';
+        document.getElementById('serial-fields').style.display = (p === 1 || p === 2) ? 'block' : 'none';
+        document.getElementById('plc-fields').style.display = (p === 3 || p === 4) ? 'block' : 'none';
+
+        const plcSelect = document.getElementById('dev-plcversion');
+        const currentVal = plcSelect.value;
+
+        let optionsHtml = '<option value="">-- 请选择 --</option>';
+        if (p === 3) {
+            optionsHtml += `
+                    <option value="S7_200">S7_200</option>
+                    <option value="S7_200Smart">S7_200Smart</option>
+                    <option value="S7_300">S7_300</option>
+                    <option value="S7_400">S7_400</option>
+                    <option value="S7_1200">S7_1200</option>
+                    <option value="S7_1500">S7_1500</option>
+                `;
+        } else if (p === 4) {
+            optionsHtml += `
+                    <option value="A_1E">A_1E</option>
+                    <option value="Qna_3E">Qna_3E</option>
+                `;
+        }
+        plcSelect.innerHTML = optionsHtml;
+
+        // Restore value if it still exists in the new options
+        if (Array.from(plcSelect.options).some(opt => opt.value === currentVal)) {
+            plcSelect.value = currentVal;
+        } else {
+            plcSelect.value = "";
+        }
+    }
+
+    let deviceModalInstance;
+    async function showDeviceModal(device = null) {
+        if(!deviceModalInstance) deviceModalInstance = new bootstrap.Modal(document.getElementById('deviceModal'));
+
+        await loadProtocolPlugins();
+        buildDeviceProtocolSelect();
+
+        document.getElementById('dev-is-edit').value = device ? '1' : '0';
+        document.getElementById('dev-id').value = device ? device.id : '';
+        document.getElementById('dev-id').disabled = !!device;
+        document.getElementById('dev-name').value = device ? device.name : '';
+        const sel = document.getElementById('dev-protocol');
+        if (device && device.protocolType === 6 && device.pluginId) {
+            const pv = 'plugin:' + device.pluginId;
+            if (!Array.from(sel.options).some(o => o.value === pv)) {
+                const og = sel.querySelector('optgroup[label="插件协议"]');
+                if (og) {
+                    const opt = document.createElement('option');
+                    opt.value = pv;
+                    opt.textContent = (device.pluginId || '') + '（当前未加载）';
+                    og.appendChild(opt);
+                }
+            }
+            sel.value = pv;
+        } else {
+            sel.value = device ? String(device.protocolType) : '0';
+        }
+        document.getElementById('dev-ip').value = device ? device.ip : '';
+        document.getElementById('dev-port').value = device ? device.port : '';
+        document.getElementById('dev-portname').value = device ? device.portName : '';
+        document.getElementById('dev-baud').value = device ? device.baudRate : 9600;
+        document.getElementById('dev-databits').value = device ? device.dataBits : 8;
+        document.getElementById('dev-stopbits').value = device ? device.stopBits : 1;
+        document.getElementById('dev-parity').value = device ? device.parity : 0;
+        document.getElementById('dev-interval').value = device ? device.pollInterval : 1000;
+        document.getElementById('dev-active').checked = device ? device.isActive : true;
+        document.getElementById('dev-plugin-config').value = device ? (device.pluginConfigJson || '') : '';
+
+        toggleProtocolFields();
+        document.getElementById('dev-plcversion').value = device ? device.plcVersion : '';
+        deviceModalInstance.show();
+    }
+
+    async function loadProtocolPlugins() {
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/protocol-plugins`);
+            if (!res.ok) window.pluginProtocolList = [];
+            else window.pluginProtocolList = await res.json();
+        } catch (e) {
+            window.pluginProtocolList = [];
+        }
+        buildDeviceProtocolSelect();
+        renderPluginProtocolPanelTable();
+    }
+
+    async function saveDevice() {
+        const id = document.getElementById('dev-id').value;
+        if (!id) return alert('请输入设备 ID');
+
+        const raw = document.getElementById('dev-protocol').value;
+        let protocolType;
+        let pluginId = '';
+        if (raw.startsWith('plugin:')) {
+            protocolType = 6;
+            pluginId = raw.slice('plugin:'.length).trim();
+            if (!pluginId) return alert('请选择插件协议');
+        } else {
+            if (raw === '') return alert('请选择协议类型');
+            protocolType = parseInt(raw, 10);
+            if (Number.isNaN(protocolType)) return alert('请选择协议类型');
+        }
+
+        const isEdit = document.getElementById('dev-is-edit').value === '1';
+        const payload = {
+            id: id.trim(),
+            name: document.getElementById('dev-name').value,
+            protocolType,
+            ip: document.getElementById('dev-ip').value,
+            port: parseInt(document.getElementById('dev-port').value || 0),
+            portName: document.getElementById('dev-portname').value,
+            baudRate: parseInt(document.getElementById('dev-baud').value),
+            dataBits: parseInt(document.getElementById('dev-databits').value),
+            stopBits: parseInt(document.getElementById('dev-stopbits').value),
+            parity: parseInt(document.getElementById('dev-parity').value),
+            plcVersion: document.getElementById('dev-plcversion').value,
+            pluginId: protocolType === 6 ? pluginId : '',
+            pluginConfigJson: protocolType === 6 ? document.getElementById('dev-plugin-config').value : '',
+            pollInterval: parseInt(document.getElementById('dev-interval').value),
+            isActive: document.getElementById('dev-active').checked
+        };
+
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/device${isEdit ? '/'+id : ''}`, {
+                method: isEdit ? 'PUT' : 'POST',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                deviceModalInstance.hide();
+                loadDevices();
+            } else {
+                const err = await res.json();
+                throw new Error(err.message || '保存失败');
+            }
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function deleteDevice(id) {
+        if(!confirm('确定要删除此设备吗？')) return;
+        try {
+            await fetchWithAuth(`${API_BASE}/device/${encodeURIComponent(String(id))}`, { method: 'DELETE' });
+            loadDevices();
+        } catch (e) { alert('删除失败'); }
+    }
+
+    async function loadDevices() {
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/device`);
+            if (!res.ok) throw new Error('API Error');
+            const data = await res.json();
+            window.devicesData = data; // store for edit
+            const tbody = document.getElementById('device-list');
+            tbody.innerHTML = data.map(d => `
+                    <tr>
+                        <td><span class="text-muted fw-medium">#${d.id}</span></td><td class="fw-medium">${d.name}</td>
+                        <td><code class="small bg-light px-2 py-1 rounded">${d.protocolType === 1 || d.protocolType === 2 ? d.portName : d.ip}</code></td>
+                        <td>${d.protocolType === 1 || d.protocolType === 2 ? d.baudRate : d.port}</td>
+                        <td><span class="badge rounded-pill text-bg-light text-dark border">${formatProtocolLabel(d)}</span></td>
+                        <td><span class="badge rounded-pill ${d.isActive ? 'text-bg-success' : 'text-bg-secondary'}">${d.isActive ? '启用' : '停用'}</span></td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick='manageVariables("${d.id}")' title="物模型"><i class="bi bi-box-seam"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick='showDeviceModal(window.devicesData.find(x=>String(x.id)==="${d.id}"))' title="编辑"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick='deleteDevice("${d.id}")' title="删除"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+            // 填充物模型面板的设备下拉框
+            const varDeviceSelect = document.getElementById('var-device-id');
+            const varDevIdInput = document.getElementById('var-dev-id-input');
+            const debugDeviceSelect = document.getElementById('debug-device-id');
+
+            const currentVal = varDeviceSelect.value;
+            const currentDebugVal = debugDeviceSelect.value;
+
+            const optionsHtml = '<option value="">-- 请选择设备 --</option>' +
+                data.map(d => `<option value="${d.id}">[${d.id}] ${d.name}</option>`).join('');
+
+            varDeviceSelect.innerHTML = optionsHtml;
+            varDevIdInput.innerHTML = optionsHtml;
+            debugDeviceSelect.innerHTML = optionsHtml;
+
+            if (currentVal && data.find(d => String(d.id) === currentVal)) {
+                varDeviceSelect.value = currentVal;
+            }
+            if (currentDebugVal && data.find(d => String(d.id) === currentDebugVal)) {
+                debugDeviceSelect.value = currentDebugVal;
+            }
+        } catch (e) {
+            if(e.message !== 'Unauthorized') {
+                document.getElementById('device-list').innerHTML = '<tr><td colspan="7" class="text-center text-danger">无法连接到后端 API，请确保 C# 服务已启动</td></tr>';
+            }
+        }
+    }
+
+    function manageVariables(deviceId) {
+        // 切换到物模型面板
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelector('[data-target="variable-panel"]').classList.add('active');
+        document.getElementById('variable-panel').classList.add('active');
+
+        // 填充设备 ID 并加载变量
+        document.getElementById('var-device-id').value = deviceId;
+        loadVariables();
+    }
+
+    let variableModalInstance;
+    function showVariableModal(variable = null) {
+        if(!variableModalInstance) variableModalInstance = new bootstrap.Modal(document.getElementById('variableModal'));
+
+        document.getElementById('var-id').value = variable ? variable.id : '';
+        document.getElementById('var-dev-id-input').value = variable ? variable.deviceId : document.getElementById('var-device-id').value;
+        document.getElementById('var-address').value = variable ? variable.address : '';
+        document.getElementById('var-datatype').value = variable ? variable.dataType : 0;
+        document.getElementById('var-alias').value = variable ? variable.alias : '';
+        document.getElementById('var-description').value = variable ? (variable.description || '') : '';
+        document.getElementById('var-rw').value = variable ? variable.readWrite : 0;
+
+        variableModalInstance.show();
+    }
+
+    async function saveVariable() {
+        const id = document.getElementById('var-id').value;
+        const deviceIdStr = document.getElementById('var-dev-id-input').value;
+        if (!deviceIdStr) return alert('请选择所属设备');
+
+        const payload = {
+            id: id ? id.trim() : "0",
+            deviceId: deviceIdStr.trim(),
+            address: document.getElementById('var-address').value,
+            dataType: parseInt(document.getElementById('var-datatype').value),
+            alias: document.getElementById('var-alias').value,
+            description: document.getElementById('var-description').value,
+            readWrite: parseInt(document.getElementById('var-rw').value)
+        };
+
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/variable${id ? '/'+id : ''}`, {
+                method: id ? 'PUT' : 'POST',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                variableModalInstance.hide();
+                document.getElementById('var-device-id').value = payload.deviceId;
+                loadVariables();
+            } else {
+                const err = await res.json();
+                throw new Error(err.message || '保存失败');
+            }
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function deleteVariable(id) {
+        if(!confirm('确定要删除此变量吗？')) return;
+        try {
+            await fetchWithAuth(`${API_BASE}/variable/${encodeURIComponent(String(id))}`, { method: 'DELETE' });
+            loadVariables();
+        } catch (e) { alert('删除失败'); }
+    }
+
+    async function loadVariables() {
+        const deviceId = document.getElementById('var-device-id').value;
+        const tbody = document.getElementById('variable-list');
+        if(!deviceId) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">请先选择设备</td></tr>';
+            return;
+        }
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/variable/device/${deviceId}`);
+            const data = await res.json();
+            window.variablesData = data;
+            tbody.innerHTML = data.length === 0 ? '<tr><td colspan="7" class="text-center text-muted py-5">该设备暂无物模型变量</td></tr>' : data.map(v => `
+                    <tr>
+                        <td><span class="text-muted">#${v.id}</span></td>
+                        <td><code class="small bg-light px-2 py-1 rounded">${v.address}</code></td>
+                        <td><span class="badge rounded-pill text-bg-light text-dark border">${dataTypeNames[v.dataType]}</span></td>
+                        <td class="fw-medium">${v.alias}</td><td class="text-secondary small">${v.description || '—'}</td>
+                        <td>${rwNames[v.readWrite]}</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick='showVariableModal(window.variablesData.find(x=>String(x.id)==="${v.id}"))' title="编辑"><i class="bi bi-pencil"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick='deleteVariable("${v.id}")' title="删除"><i class="bi bi-trash3"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+        } catch (e) {
+            if(e.message !== 'Unauthorized') alert('查询失败，请检查后端服务');
+        }
+    }
+
+    async function loadMqttConfig() {
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/mqtt`);
+            if (res.ok) {
+                const data = await res.json();
+                if(data) {
+                    document.getElementById('mqtt-ip').value = data.brokerIp || '';
+                    document.getElementById('mqtt-port').value = data.port || 1883;
+                    document.getElementById('mqtt-clientid').value = data.clientId || '';
+                    document.getElementById('mqtt-username').value = data.username || '';
+                    document.getElementById('mqtt-password').value = data.password || '';
+                    document.getElementById('mqtt-pub').value = data.pubTopic || '';
+                    document.getElementById('mqtt-sub').value = data.subTopic || '';
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load MQTT config', e);
+        }
+    }
+
+    async function saveMqttConfig() {
+        const payload = {
+            brokerIp: document.getElementById('mqtt-ip').value,
+            port: parseInt(document.getElementById('mqtt-port').value),
+            clientId: document.getElementById('mqtt-clientid').value,
+            username: document.getElementById('mqtt-username').value,
+            password: document.getElementById('mqtt-password').value,
+            pubTopic: document.getElementById('mqtt-pub').value,
+            subTopic: document.getElementById('mqtt-sub').value
+        };
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/mqtt`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) alert('MQTT 配置保存成功！');
+        } catch (e) {
+            if(e.message !== 'Unauthorized') alert('保存失败，请检查后端服务');
+        }
+    }
+
+    window.debugVariables = [];
+
+    async function onDebugDeviceChange() {
+        const deviceId = document.getElementById('debug-device-id').value;
+        const addressSelect = document.getElementById('debug-address');
+        const datatypeSelect = document.getElementById('debug-datatype');
+
+        addressSelect.innerHTML = '<option value="">-- 请选择属性 --</option>';
+        datatypeSelect.value = "0";
+        window.debugVariables = [];
+
+        if (!deviceId) return;
+
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/variable/device/${deviceId}`);
+            if (res.ok) {
+                const vars = await res.json();
+                window.debugVariables = vars;
+
+                if (vars.length > 0) {
+                    addressSelect.innerHTML = '<option value="">-- 请选择属性 --</option>' +
+                        vars.map(v => `<option value="${v.address}">${v.alias} (${v.address})</option>`).join('');
+                } else {
+                    addressSelect.innerHTML = '<option value="">-- 该设备暂无物模型 --</option>';
+                }
+            }
+        } catch (e) {
+            console.error('加载设备变量失败', e);
+        }
+    }
+
+    function onDebugAddressChange() {
+        const address = document.getElementById('debug-address').value;
+        const datatypeSelect = document.getElementById('debug-datatype');
+
+        if (!address) return;
+
+        const variable = window.debugVariables.find(v => v.address === address);
+        if (variable) {
+            datatypeSelect.value = variable.dataType;
+        }
+    }
+
+    async function debugRead() {
+        const payload = {
+            deviceId: document.getElementById('debug-device-id').value,
+            address: document.getElementById('debug-address').value,
+            dataType: parseInt(document.getElementById('debug-datatype').value)
+        };
+        document.getElementById('debug-result').innerText = "请求中...";
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/debug/read`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            document.getElementById('debug-result').innerText = JSON.stringify(data, null, 2);
+        } catch (e) {
+            if(e.message !== 'Unauthorized') document.getElementById('debug-result').innerText = '请求失败: ' + e.message;
+        }
+    }
+
+    async function debugWrite() {
+        const payload = {
+            deviceId: document.getElementById('debug-device-id').value,
+            address: document.getElementById('debug-address').value,
+            dataType: parseInt(document.getElementById('debug-datatype').value),
+            writeValue: document.getElementById('debug-write-val').value
+        };
+        document.getElementById('debug-result').innerText = "请求中...";
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/debug/write`, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            document.getElementById('debug-result').innerText = JSON.stringify(data, null, 2);
+        } catch (e) {
+            if(e.message !== 'Unauthorized') document.getElementById('debug-result').innerText = '请求失败: ' + e.message;
+        }
+    }
+
+    function backupSetStatus(msg) {
+        const el = document.getElementById('backup-status');
+        if (el) el.textContent = msg || '';
+    }
+
+    async function exportBackup(asFile) {
+        backupSetStatus('');
+        const includeMqtt = document.getElementById('backup-export-mqtt').checked;
+        const token = localStorage.getItem(TOKEN_KEY);
+        const qs = new URLSearchParams({
+            includeMqtt: includeMqtt ? 'true' : 'false',
+            download: asFile ? 'true' : 'false'
+        });
+        try {
+            const res = await fetch(`${API_BASE}/backup/export?${qs}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.status === 401) {
+                alert('登录已过期，请重新登录');
+                logout();
+                return;
+            }
+            if (!res.ok) {
+                const t = await res.text();
+                throw new Error(t || res.statusText);
+            }
+            if (asFile) {
+                const blob = await res.blob();
+                let filename = 'iot-gateway-backup.json';
+                const cd = res.headers.get('Content-Disposition');
+                if (cd) {
+                    const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i.exec(cd);
+                    if (m) filename = decodeURIComponent(m[1].trim());
+                }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                backupSetStatus('已触发下载：' + filename);
+            } else {
+                const text = await res.text();
+                const pre = document.getElementById('backup-preview');
+                pre.textContent = text;
+                pre.style.display = 'block';
+                backupSetStatus('已在下方预览 JSON（可复制保存）。');
+            }
+        } catch (e) {
+            backupSetStatus('导出失败：' + e.message);
+            alert('导出失败：' + e.message);
+        }
+    }
+
+    async function onBackupFileSelected(ev) {
+        const file = ev.target.files && ev.target.files[0];
+        ev.target.value = '';
+        if (!file) return;
+        backupSetStatus('正在读取文件…');
+        let text;
+        try {
+            text = await file.text();
+        } catch (e) {
+            backupSetStatus('读取文件失败');
+            return;
+        }
+        const mode = document.getElementById('backup-import-mode').value;
+        const includeMqtt = document.getElementById('backup-import-mqtt').checked;
+        const removeMissing = document.getElementById('backup-import-remove-missing').checked;
+        let parsed;
+        try {
+            // 只做 JSON 合法性校验，避免 parse/stringify 破坏 long 精度
+            parsed = JSON.parse(text);
+        } catch (e) {
+            backupSetStatus('不是有效的 JSON');
+            alert('文件内容不是有效的 JSON');
+            return;
+        }
+        if (!parsed || !Array.isArray(parsed.devices)) {
+            backupSetStatus('缺少 devices 数组');
+            alert('备份文件缺少 devices 数组');
+            return;
+        }
+        if (mode === 'replaceAll' && !confirm('全量替换将删除当前所有设备与物模型，确定继续？')) {
+            backupSetStatus('已取消');
+            return;
+        }
+        const qs = new URLSearchParams({
+            mode,
+            includeMqtt: includeMqtt ? 'true' : 'false',
+            removeMissingVariables: removeMissing ? 'true' : 'false'
+        });
+        backupSetStatus('正在导入…');
+        try {
+            const res = await fetchWithAuth(`${API_BASE}/backup/import?${qs}`, {
+                method: 'POST',
+                // 直接上传原始文本，避免 JS Number 导致的大整数精度丢失
+                body: text
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.message || data.detail || res.statusText);
+            }
+            backupSetStatus(data.message || '导入成功');
+            alert(data.message || '导入成功');
+            loadDevices();
+            loadMqttConfig();
+        } catch (e) {
+            if (e.message !== 'Unauthorized') {
+                backupSetStatus('导入失败：' + e.message);
+                alert('导入失败：' + e.message);
+            }
+        }
+    }
+
+    // 页面加载时检查登录状态
+    void checkAuth();
+    if(localStorage.getItem(TOKEN_KEY)) {
+        loadMqttConfig();
+    }
+</script>
+</body>
+</html>

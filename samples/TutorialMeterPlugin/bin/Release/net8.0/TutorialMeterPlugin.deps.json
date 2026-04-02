@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "TutorialMeterPlugin/1.0.0": {
+        "dependencies": {
+          "IoTGateway.ProtocolSdk": "1.0.0"
+        },
+        "runtime": {
+          "TutorialMeterPlugin.dll": {}
+        }
+      },
+      "IoTGateway.ProtocolSdk/1.0.0": {
+        "runtime": {
+          "IoTGateway.ProtocolSdk.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TutorialMeterPlugin/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "IoTGateway.ProtocolSdk/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

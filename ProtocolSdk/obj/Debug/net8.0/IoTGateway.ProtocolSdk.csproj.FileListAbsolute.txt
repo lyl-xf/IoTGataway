@@ -1,0 +1,11 @@
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\bin\Debug\net8.0\IoTGateway.ProtocolSdk.deps.json
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\bin\Debug\net8.0\IoTGateway.ProtocolSdk.dll
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\bin\Debug\net8.0\IoTGateway.ProtocolSdk.pdb
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\IoTGateway.ProtocolSdk.GeneratedMSBuildEditorConfig.editorconfig
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\IoTGateway.ProtocolSdk.AssemblyInfoInputs.cache
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\IoTGateway.ProtocolSdk.AssemblyInfo.cs
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\IoTGateway.ProtocolSdk.csproj.CoreCompileInputs.cache
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\IoTGateway.ProtocolSdk.dll
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\refint\IoTGateway.ProtocolSdk.dll
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\IoTGateway.ProtocolSdk.pdb
+D:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Debug\net8.0\ref\IoTGateway.ProtocolSdk.dll

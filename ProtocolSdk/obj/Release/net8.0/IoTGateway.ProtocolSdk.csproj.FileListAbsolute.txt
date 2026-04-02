@@ -1,0 +1,11 @@
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\bin\Release\net8.0\IoTGateway.ProtocolSdk.deps.json
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\bin\Release\net8.0\IoTGateway.ProtocolSdk.dll
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\bin\Release\net8.0\IoTGateway.ProtocolSdk.pdb
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\IoTGateway.ProtocolSdk.GeneratedMSBuildEditorConfig.editorconfig
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\IoTGateway.ProtocolSdk.AssemblyInfoInputs.cache
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\IoTGateway.ProtocolSdk.AssemblyInfo.cs
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\IoTGateway.ProtocolSdk.csproj.CoreCompileInputs.cache
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\IoTGateway.ProtocolSdk.dll
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\refint\IoTGateway.ProtocolSdk.dll
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\IoTGateway.ProtocolSdk.pdb
+d:\iot\iot-gateway\IoTGateway\ProtocolSdk\obj\Release\net8.0\ref\IoTGateway.ProtocolSdk.dll

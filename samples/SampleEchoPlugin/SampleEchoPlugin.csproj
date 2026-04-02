@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>SampleEchoPlugin</AssemblyName>
+    <RootNamespace>SampleEchoPlugin</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\ProtocolSdk\IoTGateway.ProtocolSdk.csproj" />
+  </ItemGroup>
+  <Target Name="CopyPluginToHostPlugins" AfterTargets="Build">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(MSBuildThisFileDirectory)..\..\plugins\" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

@@ -1,0 +1,15 @@
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\bin\Debug\net8.0\TutorialMeterPlugin.deps.json
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\bin\Debug\net8.0\TutorialMeterPlugin.dll
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\bin\Debug\net8.0\TutorialMeterPlugin.pdb
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\bin\Debug\net8.0\IoTGateway.ProtocolSdk.dll
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\bin\Debug\net8.0\IoTGateway.ProtocolSdk.pdb
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.csproj.AssemblyReference.cache
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.GeneratedMSBuildEditorConfig.editorconfig
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.AssemblyInfoInputs.cache
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.AssemblyInfo.cs
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.csproj.CoreCompileInputs.cache
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\Tutorial.AC797127.Up2Date
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.dll
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\refint\TutorialMeterPlugin.dll
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\TutorialMeterPlugin.pdb
+D:\iot\iot-gateway\IoTGateway\samples\TutorialMeterPlugin\obj\Debug\net8.0\ref\TutorialMeterPlugin.dll
