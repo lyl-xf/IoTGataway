@@ -25,3 +25,5 @@ nohup ./IoTGateway > gateway.log 2>&1 &
 tail -f gateway.log
 
 tail -n 100 gateway.log
+
+部署成功访问【设备ip:5000端口】
